@@ -39,6 +39,31 @@ export async function DiscordRequest(endpoint, options) {
   return res;
 }
 
+export async function DestinyRequest(endpoint, search) {
+  // append endpoint to root API URL
+  const url = new URL('https://www.bungie.net/Platform/' + endpoint);
+  url.search = new URLSearchParams(search).toString();
+  console.log(endpoint)
+  // Use node-fetch to make requests
+  const res = await fetch(url, {
+    method: "GET",
+    headers: {
+      "X-API-Key": `${process.env.DESTINY_API_KEY}`,
+    },
+  });
+  // throw API errors
+  if (!res.ok) {
+    const data = await res.text;
+    console.log(data);
+    console.log(res.status);
+    throw new Error("Error response from D2 Server");
+  }
+
+  const data = await res.json();
+  console.log(JSON.stringify(data, null, 2));
+  return res;
+}
+
 // Simple method that returns a random emoji from list
 export function getRandomEmoji() {
   const emojiList = ['😭','😄','😌','🤓','😎','😤','🤖','😶‍🌫️','🌏','📸','💿','👋','🌊','✨'];

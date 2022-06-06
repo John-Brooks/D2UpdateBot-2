@@ -7,7 +7,7 @@ import {
   MessageComponentTypes,
   ButtonStyleTypes,
 } from 'discord-interactions';
-import { VerifyDiscordRequest, getRandomEmoji, DiscordRequest } from './utils.js';
+import { VerifyDiscordRequest, getRandomEmoji, DiscordRequest, DestinyRequest } from './utils.js';
 import { getShuffledOptions, getResult } from './game.js';
 import {
   CHALLENGE_COMMAND,
@@ -175,12 +175,46 @@ app.post('/interactions', async function (req, res) {
   }
 });
 
-app.listen(PORT, () => {
-  console.log('Listening on port', PORT);
 
-  // Check if guild commands from commands.json are installed (if not, install them)
-  HasGuildCommands(process.env.APP_ID, process.env.GUILD_ID, [
-    TEST_COMMAND,
-    CHALLENGE_COMMAND,
-  ]);
-});
+function getSnowFlakeID() {
+  const DISCORD_EPOCH = 1420070400000;
+  const d = new Date();
+  var ms = d.getMilliseconds();
+  console.log(ms);
+  return (ms - DISCORD_EPOCH) << 22;
+};
+
+function sendMessage() {
+  
+  const destiny_endpoint = `Destiny2/Vendors/`;  
+  let response = DestinyRequest(destiny_endpoint, {
+    method: 'GET',
+    components: "400"
+  });
+
+  // let response = DestinyRequest(destiny_endpoint, {
+  //   method: 'GET',
+  //   definitions: true
+  // });
+
+  // const discord_endpoint = `channels/${process.env.CHANNEL_ID}/messages`;  
+  // DiscordRequest(discord_endpoint, {
+  //     method: 'POST',
+  //     body: {
+  //       content: "?",
+  //     }
+  //   }
+  // );
+};
+
+sendMessage();
+
+// app.listen(PORT, () => {
+//   console.log('Listening on port', PORT);
+
+//   // Check if guild commands from commands.json are installed (if not, install them)
+//   HasGuildCommands(process.env.APP_ID, process.env.GUILD_ID, [
+//     TEST_COMMAND,
+//     CHALLENGE_COMMAND,
+//   ]);
+// });
