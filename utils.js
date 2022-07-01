@@ -1,6 +1,13 @@
 import 'dotenv/config';
 import fetch from 'node-fetch';
 import { verifyKey } from 'discord-interactions';
+import { createRequire } from 'module';
+import { response } from 'express';
+import * as oldfs from "fs";
+import { URLSearchParams } from 'url';
+const require = createRequire(import.meta.url);
+const fs = require('fs');
+const fsPromises = fs.promises;
 
 export function VerifyDiscordRequest(clientKey) {
   return function (req, res, buf, encoding) {
@@ -64,10 +71,131 @@ export async function DestinyRequest(endpoint, search) {
   return res;
 }
 
-// Simple method that returns a random emoji from list
-export function getRandomEmoji() {
-  const emojiList = ['😭','😄','😌','🤓','😎','😤','🤖','😶‍🌫️','🌏','📸','💿','👋','🌊','✨'];
-  return emojiList[Math.floor(Math.random() * emojiList.length)];
+export async function getXurInventory() {
+  const search = {
+    method: 'GET',
+    components: "402"
+  };
+  const url = new URL('https://www.bungie.net/Platform/Destiny2/Vendors/');
+  url.search = new URLSearchParams(search).toString();
+  const response = await fetch(url, {
+    method: "GET",
+    headers: {
+      "X-API-Key": `${process.env.DESTINY_API_KEY}`
+    }
+  });
+  const xurManifest = await response.json();
+  const inventory = Object.values(Object.values(xurManifest.Response.sales.data)[0].saleItems);
+  const inventoryNameList = await getItemFromManifest(inventory);
+
+  return inventoryNameList;
+}
+
+export async function getItemFromManifest(itemList) {
+  var inventoryNameList = [];
+  const manifestFileName = await getManifestFile();
+  const itemManifestFileName = "manifest-items.json";
+
+  await fetch('https://www.bungie.net' + manifestFileName)
+    .then(response => response.json())
+    .then(async data => {
+      inventoryNameList = await getCollectiblesFromManifest(
+        itemManifestFileName,
+        inventoryNameList,
+        itemList,
+        data
+      );
+    });
+
+  return inventoryNameList;
+}
+
+async function getCollectiblesFromManifest(fileName, inventoryNameList, itemList, data) {
+  try {
+    await fsPromises.access(fileName, oldfs.constants.F_OK);
+    inventoryNameList = await readFile(fileName, itemList, inventoryNameList);
+  } catch (error) {
+    inventoryNameList = await writeFile(fileName, data.DestinyInventoryItemDefinition, itemList, inventoryNameList);
+  }
+  return inventoryNameList;
+}
+
+export async function getAggregatedManifestFile(data) {
+  const manifestFileName = await getManifestFile();
+  const aggregateFileName = manifestFileName.split("/")[5];
+
+  await fetch('https://www.bungie.net' + manifestFileName)
+    .then(response => response.json())
+    .then(async data => {
+      await fsPromises.writeFile(aggregateFileName, JSON.stringify(data))
+        .catch((error) => {
+          console.log("Error while writing the aggregated manifest file!");
+          throw (error);
+        });
+    });
+}
+
+async function getManifestFile() {
+  const manifest = await fetch(new URL('https://www.bungie.net/Platform/Destiny2/Manifest/'), {
+    method: "GET",
+    headers: {
+      "X-API-Key": `${process.env.DESTINY_API_KEY}`
+    }
+  });
+  const manifestJson = await manifest.json();
+
+  return manifestJson.Response.jsonWorldContentPaths.en;
+}
+
+async function readFile(fileName, itemList, inventoryNameList) {
+  await fsPromises.readFile(fileName)
+    .then((fileContents) => {
+      inventoryNameList = getItemName(itemList, JSON.parse(fileContents));
+    })
+    .catch((error) => {
+      console.log("Error reading file!");
+      throw (error);
+    })
+
+  return inventoryNameList;
+}
+
+async function writeFile(fileName, manifestData, itemHashId, inventoryNameList) {
+  await fsPromises.writeFile(fileName, JSON.stringify(manifestData))
+    .then(() => {
+      inventoryNameList = getItemName(itemHashId, manifestData);
+    })
+    .catch((error) => {
+      console.log("Error while writing!");
+      throw (error);
+    })
+
+  return inventoryNameList;
+}
+
+async function getItemName(inventoryItemList, manifest) {
+  var itemNameList = [];
+  const manifestKeys = Object.keys(manifest);
+  const itemListValues = Object.values(inventoryItemList);
+  const itemHashList = [];
+
+  itemListValues.forEach(item => {
+    itemHashList.push(item.itemHash);
+  });
+
+  for (var i = 0; i < manifestKeys.length; i++) {
+    if (canManifestItemBeAdded(itemHashList, manifest, manifestKeys, i, itemNameList)) {
+      itemNameList.push(manifest[manifestKeys[i]].displayProperties.name);
+    }
+  }
+
+  return itemNameList;
+}
+
+function canManifestItemBeAdded(itemHashList, manifest, manifestKeys, index, itemNameList) {
+  return itemHashList.includes(manifest[manifestKeys[index]].hash) &&
+    manifest[manifestKeys[index]].itemType == 3 &&
+    !itemNameList.includes(manifest[manifestKeys[index]].displayProperties.name);
 }
 
 export function capitalize(str) {
