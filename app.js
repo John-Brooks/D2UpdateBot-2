@@ -4,7 +4,7 @@ import {
   InteractionType,
   InteractionResponseType
 } from 'discord-interactions';
-import { VerifyDiscordRequest, DiscordRequest, getAggregatedManifestFile, getXurInventory, getItemFromManifest } from './utils.js';
+import { VerifyDiscordRequest, DiscordRequest, DestinyRequest, getAggregatedManifestFile, getXurInventory, getBansheeInventory } from './utils.js';
 
 // Create an express app
 const app = express();
@@ -65,7 +65,7 @@ async function sendMessage() {
   //   components: "402"
   // });
 
-  // const destiny_endpoint = `Destiny2/Vendors/`;  
+  const destiny_endpoint = `Destiny2/Vendors/`;  
   // let response = DestinyRequest(destiny_endpoint, {
   //   method: 'GET',
   //   components: "400"
@@ -75,11 +75,14 @@ async function sendMessage() {
   // await getAggregatedManifestFile();
 
   var xurInventoryMessage = "Xur is selling:\r\n";
-  let xurItems = await getXurInventory();
-  xurItems.forEach(item => {
-    xurInventoryMessage = xurInventoryMessage + item + "\r\n";
-  });
-  console.log(xurInventoryMessage);
+  // let xurItems = await getXurInventory();
+  // xurItems.forEach(item => {
+  //   xurInventoryMessage = xurInventoryMessage + item + "\r\n";
+  // });
+  // console.log(xurInventoryMessage);
+
+  var bansheeInventoryMessage = "Banshee-44 is selling:\r\n";
+  let bansheeItems = await getBansheeInventory();
 
   const discord_endpoint = `channels/${process.env.CHANNEL_ID}/messages`;  
   // DiscordRequest(discord_endpoint, {

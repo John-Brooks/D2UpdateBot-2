@@ -50,7 +50,7 @@ export async function DestinyRequest(endpoint, search) {
   // append endpoint to root API URL
   const url = new URL('https://www.bungie.net/Platform/' + endpoint);
   url.search = new URLSearchParams(search).toString();
-  console.log(endpoint)
+  console.log(url)
   // Use node-fetch to make requests
   const res = await fetch(url, {
     method: "GET",
@@ -91,7 +91,44 @@ export async function getXurInventory() {
   return inventoryNameList;
 }
 
-export async function getItemFromManifest(itemList) {
+export async function getBansheeInventory() {
+  await getOauthToken();
+}
+
+async function getOauthToken() {
+  // const url = new URL('https://www.bungie.net/en/oauth/authorize?client_id=40675&response_type=code');
+  // const url = new URL('https://www.bungie.net/en/oauth/authorize?client_id=40675&response_type=code&state=6i0mkLx79Hp91nzWVeHrzHG4');
+  const url = new URL('https://www.bungie.net/platform/app/oauth/token/');
+  var body = {
+    "grant_type": "authorization_code",
+    "code": "35dbf070ac4a9e110481b0ffcbbfbc3f",
+    "client_id": "40675"
+  }
+  var fetchBody = [];
+  for (var key in body) {
+    var encodedKey = encodeURIComponent(key);
+    var encodedValue = encodeURIComponent(body[key]);
+    fetchBody.push(encodedKey + '=' + encodedValue);
+  }
+  fetchBody = fetchBody.join('&');
+  console.log('before code call');
+  const response = await fetch(url, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/x-www-form-urlencoded; charset=UTF-8'
+    },
+    body: new URLSearchParams({
+      "grant_type": "authorization_code",
+    "code": "35dbf070ac4a9e110481b0ffcbbfbc3f",
+    "client_id": "40675"
+    })
+  });
+  console.log(response);
+  console.log()
+  console.log('after code call');
+}
+
+async function getItemFromManifest(itemList) {
   var inventoryNameList = [];
   const manifestFileName = await getManifestFile();
   const itemManifestFileName = "manifest-items.json";
