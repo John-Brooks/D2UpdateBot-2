@@ -4,7 +4,9 @@ import {
   InteractionType,
   InteractionResponseType
 } from 'discord-interactions';
-import { VerifyDiscordRequest, DiscordRequest, DestinyRequest, getAggregatedManifestFile, getXurInventory, getBansheeInventory } from './utils.js';
+import { getXurInventory, getVendorModInventory, refreshOauthToken } from './vendor-utils.js';
+import { getAggregatedManifestFile } from './manifest-utils.js';
+import { VerifyDiscordRequest, DiscordRequest } from './discord-utils.js';
 
 // Create an express app
 const app = express();
@@ -60,17 +62,6 @@ function getSnowFlakeID() {
 };
 
 async function sendMessage() {
-  // let vendor = VendorRequest({
-  //   method: 'GET',
-  //   components: "402"
-  // });
-
-  const destiny_endpoint = `Destiny2/Vendors/`;  
-  // let response = DestinyRequest(destiny_endpoint, {
-  //   method: 'GET',
-  //   components: "400"
-  // });
-
   // This is for retrieving the aggregated manifest file. It'll be saved locally, it's Fucking Hube, and it'll be ignored by Git
   // await getAggregatedManifestFile();
 
@@ -81,14 +72,30 @@ async function sendMessage() {
   // });
   // console.log(xurInventoryMessage);
 
-  var bansheeInventoryMessage = "Banshee-44 is selling:\r\n";
-  let bansheeItems = await getBansheeInventory();
+  let bansheeItems = await getVendorModInventory('672118013');
+  let bansheeMessage = 'Banshee-44: "What are ya buyin?"\r\n';
+  let i = 1;
+  bansheeItems.forEach(item => {
+      bansheeMessage = bansheeMessage + `\r\n${i}.${item}`;
+      i++;
+    });
+
+  var adaInventoryMessage = 'Ada-1: "I have wares if you have glimmer."\r\n';
+  let adaItems = await getVendorModInventory('350061650');
+  let j = 1;
+  adaItems.forEach(item => {
+    adaInventoryMessage = adaInventoryMessage + `\r\n${j}.${item}`;
+    j++;
+  });
+  console.log(bansheeMessage);
+  console.log(adaInventoryMessage);
+
 
   const discord_endpoint = `channels/${process.env.CHANNEL_ID}/messages`;  
   // DiscordRequest(discord_endpoint, {
   //     method: 'POST',
   //     body: {
-  //       content: xurInventoryMessage,
+  //       content: adaInventoryMessage,
   //     }
   //   }
   // );
