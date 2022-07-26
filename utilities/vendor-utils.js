@@ -47,8 +47,7 @@ export async function getVendorModInventory(vendorId) {
     }
   }
 
-  const modsForSale = await getItemFromManifest(19, vendorInventory);
-  return modsForSale;
+  return await getItemFromManifest(19, vendorInventory);
 }
 
 async function refreshOauthToken() {
