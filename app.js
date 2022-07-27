@@ -24,12 +24,11 @@ async function sendMessage() {
   // console.log(xurInventoryMessage);
   
   const discord_endpoint = `channels/${process.env.CHANNEL_ID}/messages`;
-  var flag = false;
   var time = new Date();
   const timeOfDay = `${time.getHours()}:${time.getMinutes()}:${time.getSeconds()}`;
 
   // need to detect when the inventory has been refreshed
-  if (timeOfDay === '13:5:1' && !flag) {
+  if (timeOfDay === '13:5:1') {
     flag = true;
     let bansheeItems = await getVendorModInventory('672118013');
     let bansheeMessage = 'Banshee-44: "What are ya buyin?"';
