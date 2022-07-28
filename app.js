@@ -2,7 +2,7 @@ import 'dotenv/config';
 import express from 'express';
 import { getXurInventory, getVendorModInventory } from './utilities/vendor-utils.js';
 import { getAggregatedManifestFile } from './utilities/manifest-utils.js';
-import { VerifyDiscordRequest, DiscordRequest } from './utilities/discord-utils.js';
+import { DiscordRequest } from './utilities/discord-utils.js';
 
 const app = express();
 
@@ -29,13 +29,20 @@ async function sendMessage() {
   //   }
   // });
 
+  const bansheeItems = await getVendorModInventory('672118013');
+    const adaItems = await getVendorModInventory('350061650');
+    const vendorModList = bansheeItems.concat(adaItems);
+    vendorModList.forEach(item => {
+      // compare list to missing mods
+    });
+
   if (timeOfDay === '13:5:1') {
     const bansheeItems = await getVendorModInventory('672118013');
     const adaItems = await getVendorModInventory('350061650');
-    bansheeItems.forEach(item => {
-      // compare list to missing mods  
-    });
-    adaItems.forEach(item => {
+    const vendorModList = bansheeItems + adaItems;
+    vendorModList.forEach(item => {
+      // compare list to missing mods
+      console.log(`${item}\r\n`);
     });
     const discordMessage = `${bansheeMessage}\r\n\r\n${adaInventoryMessage}`;
     await DiscordRequest(discord_endpoint, {
