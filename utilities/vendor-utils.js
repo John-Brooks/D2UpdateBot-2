@@ -26,6 +26,7 @@ export async function getXurInventory() {
 
 export async function getVendorModInventory(vendorId) {
   const oauthToken = await refreshOauthToken();
+  console.log(oauthToken);
   const vendorUrl = new URL('https://www.bungie.net/Platform/Destiny2/3/Profile/4611686018467377402/Character/2305843009752986497/Vendors/');
   const searchParams = {
     components: 402
