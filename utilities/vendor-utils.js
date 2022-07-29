@@ -1,7 +1,7 @@
 import 'dotenv/config';
 import fetch from 'node-fetch';
 import { URLSearchParams } from 'url';
-import { getItemFromManifest } from './manifest-utils.js';
+import { getCollectibleFromManifest, getItemFromManifest } from './manifest-utils.js';
 
 export async function getXurInventory() {
   const search = {
@@ -67,4 +67,29 @@ async function refreshOauthToken() {
   const oauthJson = await getOauthCredentials.json();
   process.env.REFRESH_TOKEN = oauthJson['refresh_token'];
   return oauthJson['access_token'];
+}
+
+export async function getProfileCollectibles() {
+  const oauthToken = await refreshOauthToken();
+  const profileUrl = new URL('https://www.bungie.net/Platform/Destiny2/3/Profile/4611686018467377402/')
+  profileUrl.search = new URLSearchParams({
+    components: 800
+  });
+  const profileResponse = await fetch(profileUrl, {
+    method: 'GET',
+    headers: {
+      'x-api-key': `${process.env.CHASE_API_KEY}`,
+      Authorization: `Bearer ${oauthToken}`
+    } 
+  });
+  const profileJson = await profileResponse.json();
+  const modsForSale = (await getVendorModInventory('672118013')).concat(await getVendorModInventory('350061650'));
+  const list1 = [];
+  modsForSale.forEach(key => {
+    if (profileJson.Response.profileCollectibles.data.collectibles[key].state == 65) {
+      list1.push(key);
+    }
+  });
+
+  return await getCollectibleFromManifest(19, list1);
 }

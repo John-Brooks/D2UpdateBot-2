@@ -1,16 +1,16 @@
 import 'dotenv/config';
 import express from 'express';
-import { getXurInventory, getVendorModInventory } from './utilities/vendor-utils.js';
+import { getXurInventory, getVendorModInventory, getProfileCollectibles } from './utilities/vendor-utils.js';
 import { getAggregatedManifestFile } from './utilities/manifest-utils.js';
 import { DiscordRequest } from './utilities/discord-utils.js';
 
 const app = express();
 
 async function sendMessage() {
-  // This is for retrieving the aggregated manifest file. It'll be saved locally, it's Fucking Huge, and it'll be ignored by Git.
+  // This is for retrieving the aggregated manifest file. It'll be saved locally, it's Fucking Huge.
   // await getAggregatedManifestFile();
 
-  var xurInventoryMessage = "Xur is selling:\r\n";
+  // var xurInventoryMessage = "Xur is selling:\r\n";
   // let xurItems = await getXurInventory();
   // xurItems.forEach(item => {
   //   xurInventoryMessage = xurInventoryMessage + item + "\r\n";
@@ -21,13 +21,34 @@ async function sendMessage() {
   var time = new Date();
   const timeOfDay = `${time.getHours()}:${time.getMinutes()}:${time.getSeconds()}`;
 
-  // const mention = '<@144989484994396160> TESTING 123';
+  const chaseProfileId = '4611686018467377402';
+  const johnProfileId = '4611686018468594461';
+  const kyleProfileId = '4611686018509699433';
+  const caseyProfileId = '4611686018467439606';
+  // group these id's with the discord one's and look for every player
+
+  const chaseDiscordId = '144989484994396160';
+  const johnDiscordId = '150407958155624448';
+  const kyleDiscordId = '267429975072833537';
+  const caseyDiscordId = '192797584497180672';
+  const idList = [chaseDiscordId, johnDiscordId, kyleDiscordId, caseyDiscordId];
+  idList.forEach(discordId => {
+    const unownedModList = await getProfileCollectibles();
+    var mention = '<@>';
+    mention = mention + '\r\nYou have these unowned mods for sale, grab them!';
+    unownedModList.forEach(mod => {
+      mention = mention + `\r\n${mod}`;
+    });
+  });
+
+  
   // await DiscordRequest(discord_endpoint, {
   //   method: 'POST',
   //   body: {
   //     content: mention,
   //   }
   // });
+  
 
   // 123185593 combat style nodes
 
@@ -56,8 +77,8 @@ async function sendMessage() {
   }
 }
 
-while (true) {
-  await sendMessage();
-}
+// while (true) {
+//   await sendMessage();
+// }
 
-// await sendMessage();
+await sendMessage();

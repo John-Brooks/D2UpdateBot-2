@@ -13,7 +13,7 @@ export async function getItemFromManifest(itemType, itemList) {
   
     await fetch('https://www.bungie.net' + manifestFileName)
       .then(async data => {
-        inventoryNameList = await getCollectiblesFromManifest(
+        inventoryNameList = await readItemsFromManifest(
             itemType,
             itemManifestFileName,
             inventoryNameList,
@@ -25,12 +25,42 @@ export async function getItemFromManifest(itemType, itemList) {
     return inventoryNameList;
   }
 
-  async function getCollectiblesFromManifest(itemType, fileName, inventoryNameList, itemList, data) {
+  async function readItemsFromManifest(itemType, fileName, inventoryNameList, itemList, data) {
     try {
       await fsPromises.access(fileName, oldfs.constants.F_OK);
-      inventoryNameList = await readFile(itemType, fileName, itemList, inventoryNameList);
+      inventoryNameList = await readFile(itemType, fileName, itemList, inventoryNameList, false);
     } catch (error) {
-      inventoryNameList = await writeFile(itemType, fileName, data.DestinyInventoryItemDefinition, itemList, inventoryNameList);
+      inventoryNameList = await writeFile(itemType, fileName, data.DestinyInventoryItemDefinition, itemList, inventoryNameList, false);
+    }
+    return inventoryNameList;
+  }
+
+  export async function getCollectibleFromManifest(itemType, itemList) {
+    var inventoryNameList = [];
+    const manifestFileName = await getManifestFile();
+    const itemManifestFileName = 'manifest-collectibles.json';
+  
+    await fetch('https://www.bungie.net' + manifestFileName)
+      .then(async data => {
+        const newData = await data.json();
+        inventoryNameList = await readCollectiblesFromManifest(
+            itemType,
+            itemManifestFileName,
+            inventoryNameList,
+            itemList,
+            newData
+        );
+      });
+  
+    return inventoryNameList;
+  }
+
+  async function readCollectiblesFromManifest(itemType, fileName, inventoryNameList, itemList, data) {
+    try {
+      await fsPromises.access(fileName, oldfs.constants.F_OK);
+      inventoryNameList = await readFile(itemType, fileName, itemList, inventoryNameList, true);
+    } catch (error) {
+      inventoryNameList = await writeFile(itemType, fileName, data.DestinyCollectibleDefinition, itemList, inventoryNameList, true);
     }
     return inventoryNameList;
   }
@@ -47,10 +77,14 @@ export async function getItemFromManifest(itemType, itemList) {
     return manifestJson.Response.jsonWorldContentPaths.en;
   }
   
-  async function readFile(itemType, fileName, itemList, inventoryNameList) {
+  async function readFile(itemType, fileName, itemList, inventoryNameList, collectible) {
     await fsPromises.readFile(fileName)
       .then((fileContents) => {
-        inventoryNameList = getItemName(itemType, itemList, JSON.parse(fileContents));
+        if (collectible) {
+          inventoryNameList = getCollectibleName(itemList, JSON.parse(fileContents));
+        } else {
+          inventoryNameList = getItemName(itemType, itemList, JSON.parse(fileContents));
+        }
       })
       .catch((error) => {
         console.log('Error reading file!');
@@ -60,10 +94,14 @@ export async function getItemFromManifest(itemType, itemList) {
     return inventoryNameList;
   }
   
-  async function writeFile(itemType, fileName, manifestData, itemList, inventoryNameList) {
+  async function writeFile(itemType, fileName, manifestData, itemList, inventoryNameList, collectible) {
     await fsPromises.writeFile(fileName, JSON.stringify(manifestData))
       .then(() => {
-        inventoryNameList = getItemName(itemType, itemList, manifestData);
+        if (collectible) {
+          inventoryNameList = getCollectibleName(itemList, manifestData);
+        } else {
+          inventoryNameList = getItemName(itemType, itemList, manifestData);
+        }
       })
       .catch((error) => {
         console.log('Error while writing!');
@@ -85,6 +123,19 @@ export async function getItemFromManifest(itemType, itemList) {
   
     for (var i = 0; i < manifestKeys.length; i++) {
       if (canManifestItemBeAdded(itemType, itemHashList, manifest, manifestKeys, i, itemNameList)) {
+        itemNameList.push(manifest[manifestKeys[i]].collectibleHash);
+      }
+    }
+  
+    return itemNameList;
+  }
+
+  function getCollectibleName(inventoryItemList, manifest) {
+    var itemNameList = [];
+    const manifestKeys = Object.keys(manifest);
+  
+    for (var i = 0; i < manifestKeys.length; i++) {
+      if (inventoryItemList.includes(manifestKeys[i])) {
         itemNameList.push(manifest[manifestKeys[i]].displayProperties.name);
       }
     }
@@ -95,7 +146,7 @@ export async function getItemFromManifest(itemType, itemList) {
   function canManifestItemBeAdded(itemType, itemHashList, manifest, manifestKeys, index, itemNameList) {
     return itemHashList.includes(manifest[manifestKeys[index]].hash) &&
       manifest[manifestKeys[index]].itemType == itemType &&
-      !itemNameList.includes(manifest[manifestKeys[index]].displayProperties.name);
+      !itemNameList.includes(manifest[manifestKeys[index]].collectibleHash);
   }
 
   export async function getAggregatedManifestFile() {
