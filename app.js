@@ -29,20 +29,22 @@ async function sendMessage() {
   //   }
   // });
 
-  const bansheeItems = await getVendorModInventory('672118013');
-    const adaItems = await getVendorModInventory('350061650');
-    const vendorModList = bansheeItems.concat(adaItems);
-    vendorModList.forEach(item => {
-      // compare list to missing mods
-    });
+  // 123185593 combat style nodes
 
   if (timeOfDay === '13:5:1') {
-    const bansheeItems = await getVendorModInventory('672118013');
+    let bansheeItems = await getVendorModInventory('672118013');
+    let bansheeMessage = 'Banshee-44: "What are ya buyin?"';
+    let i = 1;
     const adaItems = await getVendorModInventory('350061650');
-    const vendorModList = bansheeItems + adaItems;
-    vendorModList.forEach(item => {
-      // compare list to missing mods
-      console.log(`${item}\r\n`);
+    var adaInventoryMessage = 'Ada-1: "I have wares if you have glimmer."';
+    let j = 1;
+    bansheeItems.forEach(item => {
+      bansheeMessage = bansheeMessage + `\r\n${i}.${item}`;
+        i++;
+    });
+    adaItems.forEach(item => {
+      adaInventoryMessage = adaInventoryMessage + `\r\n${j}.${item}`;
+      j++;
     });
     const discordMessage = `${bansheeMessage}\r\n\r\n${adaInventoryMessage}`;
     await DiscordRequest(discord_endpoint, {
@@ -54,8 +56,8 @@ async function sendMessage() {
   }
 }
 
-// while (true) {
-//   await sendMessage();
-// }
+while (true) {
+  await sendMessage();
+}
 
-await sendMessage();
+// await sendMessage();
