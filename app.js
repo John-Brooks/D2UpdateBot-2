@@ -1,79 +1,28 @@
 import 'dotenv/config';
-import express from 'express';
-import { getXurInventory, getVendorModInventory, getProfileCollectibles } from './utilities/vendor-utils.js';
+import { getXurInventory, getVendorModInventory, getProfileCollectibles} from './utilities/vendor-utils.js';
 import { getAggregatedManifestFile } from './utilities/manifest-utils.js';
 import { DiscordRequest } from './utilities/discord-utils.js';
 
-const app = express();
-
 async function sendMessage() {
-  // This is for retrieving the aggregated manifest file. It'll be saved locally, it's Fucking Huge.
-  // await getAggregatedManifestFile();
-
-  // var xurInventoryMessage = "Xur is selling:\r\n";
-  // let xurItems = await getXurInventory();
-  // xurItems.forEach(item => {
-  //   xurInventoryMessage = xurInventoryMessage + item + "\r\n";
-  // });
-  // console.log(xurInventoryMessage);
-  
+  let time = new Date();
   const discord_endpoint = `channels/${process.env.CHANNEL_ID}/messages`;
-  var time = new Date();
   const timeOfDay = `${time.getHours()}:${time.getMinutes()}:${time.getSeconds()}`;
+  const people = createGroup();
 
-  const chaseProfileId = '4611686018467377402';
-  const johnProfileId = '4611686018468594461';
-  const kyleProfileId = '4611686018509699433';
-  const caseyProfileId = '4611686018467439606';
-  // group these id's with the discord one's and look for every player
-
-  const chaseDiscordId = '144989484994396160';
-  const johnDiscordId = '150407958155624448';
-  const kyleDiscordId = '267429975072833537';
-  const caseyDiscordId = '192797584497180672';
-  const idList = [chaseDiscordId, johnDiscordId, kyleDiscordId, caseyDiscordId];
-  idList.forEach(discordId => {
-    const unownedModList = await getProfileCollectibles();
-    var mention = '<@>';
-    mention = mention + '\r\nYou have these unowned mods for sale, grab them!';
-    unownedModList.forEach(mod => {
-      mention = mention + `\r\n${mod}`;
-    });
-  });
-
-  
-  // await DiscordRequest(discord_endpoint, {
-  //   method: 'POST',
-  //   body: {
-  //     content: mention,
-  //   }
-  // });
-  
-
-  // 123185593 combat style nodes
+  for (const person of people) {
+    const unownedModList = await getProfileCollectibles(person);
+    if (unownedModList.length > 0) {
+      await sendDiscordMessage();
+    }
+  }
 
   if (timeOfDay === '13:5:1') {
-    let bansheeItems = await getVendorModInventory('672118013');
-    let bansheeMessage = 'Banshee-44: "What are ya buyin?"';
-    let i = 1;
-    const adaItems = await getVendorModInventory('350061650');
-    var adaInventoryMessage = 'Ada-1: "I have wares if you have glimmer."';
-    let j = 1;
-    bansheeItems.forEach(item => {
-      bansheeMessage = bansheeMessage + `\r\n${i}.${item}`;
-        i++;
-    });
-    adaItems.forEach(item => {
-      adaInventoryMessage = adaInventoryMessage + `\r\n${j}.${item}`;
-      j++;
-    });
-    const discordMessage = `${bansheeMessage}\r\n\r\n${adaInventoryMessage}`;
-    await DiscordRequest(discord_endpoint, {
-      method: 'POST',
-      body: {
-        content: discordMessage,
+    for (const person of people) {
+      const unownedModList = await getProfileCollectibles(person);
+      if (unownedModList.length > 0) {
+        await sendDiscordMessage();
       }
-    });
+    }
   }
 }
 
@@ -82,3 +31,65 @@ async function sendMessage() {
 // }
 
 await sendMessage();
+
+async function sendDiscordMessage() {
+  let mention = '';
+  mention = `<@${person.discordId}>`;
+  mention = mention + '\r\nYou have these unowned mods for sale, grab them!';
+
+  unownedModList.forEach(mod => {
+    mention = mention + `\r\n${mod}`;
+  });
+
+  await DiscordRequest(discord_endpoint, {
+    method: 'POST',
+    body: {
+      content: mention,
+    }
+  });
+}
+
+function createGroup() {
+  const chase = {
+    name: 'chase',
+    profileId: '4611686018467377402',
+    characterId: '2305843009752986497',
+    discordId: '144989484994396160'
+  };
+  const john = {
+    name: 'john',
+    profileId: '4611686018468594461',
+    characterId: '2305843009865754214',
+    discordId: '150407958155624448'
+  };
+  //Hand Cannon Holster
+  const kyle = {
+    name: 'kyle',
+    profileId: '4611686018509699433',
+    characterId: '2305843010051954330',
+    discordId: '267429975072833537'
+  };
+  // Overcharge Wellmaker
+  const casey = {
+    name: 'casey',
+    profileId: '4611686018467439606',
+    characterId: '2305843009395202985',
+    discordId: '192797584497180672'
+  };
+  // Heavy Handed, Firepower
+
+  return [chase, casey, kyle, john];
+}
+
+async function xur() {
+  let xurInventoryMessage = "Xur is selling:\r\n";
+  let xurItems = await getXurInventory();
+  xurItems.forEach(item => {
+    xurInventoryMessage = xurInventoryMessage + item + "\r\n";
+  });
+  return xurInventoryMessage;
+}
+
+async function aggregateFile() {
+  return await getAggregatedManifestFile();
+}

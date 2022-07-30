@@ -7,7 +7,7 @@ const fs = require('fs');
 const fsPromises = fs.promises;
 
 export async function getItemFromManifest(itemType, itemList) {
-    var inventoryNameList = [];
+    let inventoryNameList = [];
     const manifestFileName = await getManifestFile();
     const itemManifestFileName = 'manifest-items.json';
   
@@ -36,7 +36,7 @@ export async function getItemFromManifest(itemType, itemList) {
   }
 
   export async function getCollectibleFromManifest(itemType, itemList) {
-    var inventoryNameList = [];
+    let inventoryNameList = [];
     const manifestFileName = await getManifestFile();
     const itemManifestFileName = 'manifest-collectibles.json';
   
@@ -112,16 +112,16 @@ export async function getItemFromManifest(itemType, itemList) {
   }
 
   function getItemName(itemType, inventoryItemList, manifest) {
-    var itemNameList = [];
     const manifestKeys = Object.keys(manifest);
     const itemListValues = Object.values(inventoryItemList);
     const itemHashList = [];
+    let itemNameList = [];
   
     itemListValues.forEach(item => {
       itemHashList.push(item.itemHash);
     });
   
-    for (var i = 0; i < manifestKeys.length; i++) {
+    for (let i = 0; i < manifestKeys.length; i++) {
       if (canManifestItemBeAdded(itemType, itemHashList, manifest, manifestKeys, i, itemNameList)) {
         itemNameList.push(manifest[manifestKeys[i]].collectibleHash);
       }
@@ -131,10 +131,10 @@ export async function getItemFromManifest(itemType, itemList) {
   }
 
   function getCollectibleName(inventoryItemList, manifest) {
-    var itemNameList = [];
+    let itemNameList = [];
     const manifestKeys = Object.keys(manifest);
   
-    for (var i = 0; i < manifestKeys.length; i++) {
+    for (let i = 0; i < manifestKeys.length; i++) {
       if (inventoryItemList.includes(manifestKeys[i])) {
         itemNameList.push(manifest[manifestKeys[i]].displayProperties.name);
       }

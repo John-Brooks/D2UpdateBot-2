@@ -24,10 +24,9 @@ export async function getXurInventory() {
   return inventoryNameList;
 }
 
-export async function getVendorModInventory(vendorId) {
-  const oauthToken = await refreshOauthToken();
-  console.log(oauthToken);
-  const vendorUrl = new URL('https://www.bungie.net/Platform/Destiny2/3/Profile/4611686018467377402/Character/2305843009752986497/Vendors/');
+export async function getVendorModInventory(vendorId, person) {
+  const oauthToken = await refreshOauthToken(person.name);
+  const vendorUrl = new URL(`https://www.bungie.net/Platform/Destiny2/3/Profile/${person.profileId}/Character/${person.characterId}/Vendors/`);
   const searchParams = {
     components: 402
   };
@@ -40,9 +39,9 @@ export async function getVendorModInventory(vendorId) {
     }
   });
   const destinyVendorInventories = await response.json();
-  var vendorInventory;
+  let vendorInventory;
 
-  for(var key in destinyVendorInventories.Response.sales.data) {
+  for(let key in destinyVendorInventories.Response.sales.data) {
     if (key === vendorId) {
       vendorInventory = destinyVendorInventories.Response.sales.data[key].saleItems;
     }
@@ -51,7 +50,22 @@ export async function getVendorModInventory(vendorId) {
   return await getItemFromManifest(19, vendorInventory);
 }
 
-async function refreshOauthToken() {
+async function refreshOauthToken(name) {
+  let refreshToken = '';
+  switch (name) {
+    case 'chase':
+      refreshToken = `${process.env.CHASE_REFRESH_TOKEN}`;
+      break;
+    case 'john':
+      refreshToken = `${process.env.JOHN_REFRESH_TOKEN}`;
+      break;
+    case 'kyle':
+      refreshToken = `${process.env.KYLE_REFRESH_TOKEN}`;
+      break;
+    case 'casey':
+      refreshToken = `${process.env.CASEY_REFRESH_TOKEN}`;
+      break;
+  }
   const getOauthCredentials = await fetch(new URL('https://www.bungie.net/platform/app/oauth/token/'), {
     method: 'POST',
     headers: {
@@ -59,19 +73,32 @@ async function refreshOauthToken() {
     },
     body: new URLSearchParams({
       'grant_type': 'refresh_token',
-      'refresh_token': `${process.env.REFRESH_TOKEN}`,
+      'refresh_token': refreshToken,
       'client_id': `${process.env.CLIENT_ID}`,
       'client_secret': `${process.env.CLIENT_SECRET}`
     })
   });
   const oauthJson = await getOauthCredentials.json();
-  process.env.REFRESH_TOKEN = oauthJson['refresh_token'];
+  switch (name) {
+    case 'chase':
+      process.env.CHASE_REFRESH_TOKEN = oauthJson['refresh_token'];
+      break;
+    case 'john':
+      process.env.JOHN_REFRESH_TOKEN = oauthJson['refresh_token'];
+      break;
+    case 'kyle':
+      process.env.KYLE_REFRESH_TOKEN = oauthJson['refresh_token'];
+      break;
+    case 'casey':
+      process.env.CASEY_REFRESH_TOKEN = oauthJson['refresh_token'];
+      break;
+  }
   return oauthJson['access_token'];
 }
 
-export async function getProfileCollectibles() {
-  const oauthToken = await refreshOauthToken();
-  const profileUrl = new URL('https://www.bungie.net/Platform/Destiny2/3/Profile/4611686018467377402/')
+export async function getProfileCollectibles(person) {
+  const oauthToken = await refreshOauthToken(person.name);
+  const profileUrl = new URL(`https://www.bungie.net/Platform/Destiny2/3/Profile/${person.profileId}/`)
   profileUrl.search = new URLSearchParams({
     components: 800
   });
@@ -83,13 +110,16 @@ export async function getProfileCollectibles() {
     } 
   });
   const profileJson = await profileResponse.json();
-  const modsForSale = (await getVendorModInventory('672118013')).concat(await getVendorModInventory('350061650'));
+  const bansheeMods = await getVendorModInventory('672118013', person);
+  const adaMods = await getVendorModInventory('350061650', person);
+  const modsForSale = bansheeMods.concat(adaMods);
   const list1 = [];
   modsForSale.forEach(key => {
     if (profileJson.Response.profileCollectibles.data.collectibles[key].state == 65) {
       list1.push(key);
     }
   });
+
 
   return await getCollectibleFromManifest(19, list1);
 }
