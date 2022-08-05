@@ -59,22 +59,22 @@ async function refreshOauthToken(name) {
   let oauthJson = '';
   let refreshToken = '';
   switch (name) {
-    case 'chase':
+    case 'Chase':
       refreshToken = `${process.env.CHASE_REFRESH_TOKEN}`;
       oauthJson = await getOauthJson(refreshToken);
       process.env.CHASE_REFRESH_TOKEN = oauthJson['refresh_token'];
       break;
-    case 'john':
+    case 'John':
       refreshToken = `${process.env.JOHN_REFRESH_TOKEN}`;
       oauthJson = await getOauthJson(refreshToken);
       process.env.JOHN_REFRESH_TOKEN = oauthJson['refresh_token'];
       break;
-    case 'kyle':
+    case 'Kyle':
       refreshToken = `${process.env.KYLE_REFRESH_TOKEN}`;
       oauthJson = await getOauthJson(refreshToken);
       process.env.KYLE_REFRESH_TOKEN = oauthJson['refresh_token'];
       break;
-    case 'casey':
+    case 'Casey':
       refreshToken = `${process.env.CASEY_REFRESH_TOKEN}`;
       oauthJson = await getOauthJson(refreshToken);
       process.env.CASEY_REFRESH_TOKEN = oauthJson['refresh_token'];

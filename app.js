@@ -69,27 +69,27 @@ async function shareEmptyModsList(name) {
 
 function createGroup() {
   const chase = {
-    name: 'chase',
+    name: 'Chase',
     profileId: '4611686018467377402',
     characterId: '2305843009752986497',
     discordId: '144989484994396160'
   };
   const john = {
-    name: 'john',
+    name: 'John',
     profileId: '4611686018468594461',
     characterId: '2305843009865754214',
     discordId: '150407958155624448'
   };
   //Hand Cannon Holster
   const kyle = {
-    name: 'kyle',
+    name: 'Kyle',
     profileId: '4611686018509699433',
     characterId: '2305843010051954330',
     discordId: '267429975072833537'
   };
   // Overcharge Wellmaker
   const casey = {
-    name: 'casey',
+    name: 'Casey',
     profileId: '4611686018467439606',
     characterId: '2305843009395202985',
     discordId: '192797584497180672'
