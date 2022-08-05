@@ -1,7 +1,12 @@
 import 'dotenv/config';
 import fetch from 'node-fetch';
-import { URLSearchParams } from 'url';
-import { getCollectibleFromManifest, getItemFromManifest } from './manifest-utils.js';
+import {
+  URLSearchParams
+} from 'url';
+import {
+  getCollectibleFromManifest,
+  getItemFromManifest
+} from './manifest-utils.js';
 
 export async function getXurInventory() {
   const search = {
@@ -41,7 +46,7 @@ export async function getVendorModInventory(vendorId, person) {
   const destinyVendorInventories = await response.json();
   let vendorInventory;
 
-  for(let key in destinyVendorInventories.Response.sales.data) {
+  for (let key in destinyVendorInventories.Response.sales.data) {
     if (key === vendorId) {
       vendorInventory = destinyVendorInventories.Response.sales.data[key].saleItems;
     }
@@ -51,21 +56,34 @@ export async function getVendorModInventory(vendorId, person) {
 }
 
 async function refreshOauthToken(name) {
+  let oauthJson = '';
   let refreshToken = '';
   switch (name) {
     case 'chase':
       refreshToken = `${process.env.CHASE_REFRESH_TOKEN}`;
+      oauthJson = await getOauthJson(refreshToken);
+      process.env.CHASE_REFRESH_TOKEN = oauthJson['refresh_token'];
       break;
     case 'john':
       refreshToken = `${process.env.JOHN_REFRESH_TOKEN}`;
+      oauthJson = await getOauthJson(refreshToken);
+      process.env.JOHN_REFRESH_TOKEN = oauthJson['refresh_token'];
       break;
     case 'kyle':
       refreshToken = `${process.env.KYLE_REFRESH_TOKEN}`;
+      oauthJson = await getOauthJson(refreshToken);
+      process.env.KYLE_REFRESH_TOKEN = oauthJson['refresh_token'];
       break;
     case 'casey':
       refreshToken = `${process.env.CASEY_REFRESH_TOKEN}`;
+      oauthJson = await getOauthJson(refreshToken);
+      process.env.CASEY_REFRESH_TOKEN = oauthJson['refresh_token'];
       break;
   }
+  return oauthJson['access_token'];
+}
+
+async function getOauthJson(refreshToken) {
   const getOauthCredentials = await fetch(new URL('https://www.bungie.net/platform/app/oauth/token/'), {
     method: 'POST',
     headers: {
@@ -79,21 +97,7 @@ async function refreshOauthToken(name) {
     })
   });
   const oauthJson = await getOauthCredentials.json();
-  switch (name) {
-    case 'chase':
-      process.env.CHASE_REFRESH_TOKEN = oauthJson['refresh_token'];
-      break;
-    case 'john':
-      process.env.JOHN_REFRESH_TOKEN = oauthJson['refresh_token'];
-      break;
-    case 'kyle':
-      process.env.KYLE_REFRESH_TOKEN = oauthJson['refresh_token'];
-      break;
-    case 'casey':
-      process.env.CASEY_REFRESH_TOKEN = oauthJson['refresh_token'];
-      break;
-  }
-  return oauthJson['access_token'];
+  return oauthJson;
 }
 
 export async function getProfileCollectibles(person) {
@@ -107,7 +111,7 @@ export async function getProfileCollectibles(person) {
     headers: {
       'x-api-key': `${process.env.CHASE_API_KEY}`,
       Authorization: `Bearer ${oauthToken}`
-    } 
+    }
   });
   const profileJson = await profileResponse.json();
   const bansheeMods = await getVendorModInventory('672118013', person);
@@ -119,7 +123,6 @@ export async function getProfileCollectibles(person) {
       list1.push(key);
     }
   });
-
 
   return await getCollectibleFromManifest(19, list1);
 }

@@ -135,8 +135,10 @@ export async function getItemFromManifest(itemType, itemList) {
     const manifestKeys = Object.keys(manifest);
   
     for (let i = 0; i < manifestKeys.length; i++) {
-      if (inventoryItemList.includes(manifestKeys[i])) {
-        itemNameList.push(manifest[manifestKeys[i]].displayProperties.name);
+      for (const item of inventoryItemList) {
+        if (manifestKeys[i] == item) {
+          itemNameList.push(manifest[manifestKeys[i]].displayProperties.name);
+        }
       }
     }
   

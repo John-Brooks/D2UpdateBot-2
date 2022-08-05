@@ -1,50 +1,68 @@
 import 'dotenv/config';
-import { getXurInventory, getVendorModInventory, getProfileCollectibles} from './utilities/vendor-utils.js';
+import { getXurInventory, getProfileCollectibles} from './utilities/vendor-utils.js';
 import { getAggregatedManifestFile } from './utilities/manifest-utils.js';
 import { DiscordRequest } from './utilities/discord-utils.js';
 
+const discordEndpoint = `channels/${process.env.CHANNEL_ID}/messages`;
+
 async function sendMessage() {
   let time = new Date();
-  const discord_endpoint = `channels/${process.env.CHANNEL_ID}/messages`;
   const timeOfDay = `${time.getHours()}:${time.getMinutes()}:${time.getSeconds()}`;
   const people = createGroup();
 
-  for (const person of people) {
-    const unownedModList = await getProfileCollectibles(person);
-    if (unownedModList.length > 0) {
-      await sendDiscordMessage();
-    }
-  }
+  // for (const person of people) {
+  //   console.log(person.name + ' is starting');
+  //   const unownedModList = await getProfileCollectibles(person);
+  //   console.log('unowned '+ unownedModList);
+  //   if (unownedModList.length > 0) {
+  //     await sendDiscordMessage(person, unownedModList);
+  //   } else {
+  //     await sendDiscordMessage2(person);
+  //   }
+  // }
 
-  if (timeOfDay === '13:5:1') {
+  if (timeOfDay === '13:2:1') {
     for (const person of people) {
+      console.log(person.name + ' is starting');
       const unownedModList = await getProfileCollectibles(person);
+      console.log('unowned '+ unownedModList);
       if (unownedModList.length > 0) {
-        await sendDiscordMessage();
+        await shareUnownedModsList(person, unownedModList);
+      } else {
+        await shareEmptyModsList(person.name);
       }
     }
   }
 }
 
-// while (true) {
-//   await sendMessage();
-// }
+while (true) {
+  await sendMessage();
+}
 
-await sendMessage();
+// await sendMessage();
 
-async function sendDiscordMessage() {
-  let mention = '';
-  mention = `<@${person.discordId}>`;
-  mention = mention + '\r\nYou have these unowned mods for sale, grab them!';
+async function shareUnownedModsList(person, unownedModList) {
+  let message = `<@${person.discordId}>\r\nYou have these unowned mods for sale, grab them!`;
 
   unownedModList.forEach(mod => {
-    mention = mention + `\r\n${mod}`;
+    message = message + `\r\n${mod}`;
   });
 
-  await DiscordRequest(discord_endpoint, {
+  await DiscordRequest(discordEndpoint, {
     method: 'POST',
     body: {
-      content: mention,
+      content: message,
+    }
+  });
+}
+
+async function shareEmptyModsList(name) {
+  let message = `${name} does not have any unowned mods for sale today.`;
+
+  await DiscordRequest(discordEndpoint, {
+    method: 'POST',
+    body: {
+      content: message,
     }
   });
 }
@@ -76,9 +94,9 @@ function createGroup() {
     characterId: '2305843009395202985',
     discordId: '192797584497180672'
   };
-  // Heavy Handed, Firepower
+  // Firepower
 
-  return [chase, casey, kyle, john];
+  return [chase, john, kyle, casey];
 }
 
 async function xur() {
