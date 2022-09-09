@@ -13,24 +13,24 @@ async function sendMessage() {
   // for (const person of people) {
   //   console.log(person.name + ' is starting');
   //   const unownedModList = await getProfileCollectibles(person);
-  //   console.log('unowned '+ unownedModList);
   //   if (unownedModList.length > 0) {
-  //     await sendDiscordMessage(person, unownedModList);
+  //     await shareUnownedModsList(person, unownedModList);
   //   } else {
-  //     await sendDiscordMessage2(person);
+  //     await shareEmptyModsList(person.name);
   //   }
+  //   console.log(person.name + ' has finished');
   // }
 
   if (timeOfDay === '13:2:1') {
     for (const person of people) {
       console.log(person.name + ' is starting');
       const unownedModList = await getProfileCollectibles(person);
-      console.log('unowned '+ unownedModList);
       if (unownedModList.length > 0) {
         await shareUnownedModsList(person, unownedModList);
       } else {
         await shareEmptyModsList(person.name);
       }
+      console.log(person.name + ' has finished');
     }
   }
 }
