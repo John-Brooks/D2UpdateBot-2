@@ -80,21 +80,18 @@ function createGroup() {
     characterId: '2305843009865754214',
     discordId: '150407958155624448'
   };
-  //Hand Cannon Holster
   const kyle = {
     name: 'Kyle',
     profileId: '4611686018509699433',
     characterId: '2305843010051954330',
     discordId: '267429975072833537'
   };
-  // Overcharge Wellmaker
   const casey = {
     name: 'Casey',
     profileId: '4611686018467439606',
     characterId: '2305843009395202985',
     discordId: '192797584497180672'
   };
-  // Firepower
 
   return [chase, john, kyle, casey];
 }
